@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: nutrition
+      POSTGRES_PASSWORD: nutrition
+      POSTGRES_DB: nutrition
+    ports:
+      - "5432:5432"
+    volumes:
+      - nutrition-db:/var/lib/postgresql/data
+
+volumes:
+  nutrition-db:

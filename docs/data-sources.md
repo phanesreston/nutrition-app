@@ -1,0 +1,80 @@
+# Food composition data sources
+
+The app keeps the source database, the source's own food identifier, the unit of every value and the licence for
+each food. Sources plug in through `FoodSourceAdapter` (`src/food-sources/types.ts`): one function that maps a
+native record to `NormalisedFood`.
+
+> Details for the sources **not yet integrated** (everything except USDA SR Legacy) are from general knowledge of
+> these datasets and were not re-checked against the publishers' sites while writing this. Confirm current
+> versions and licence terms before integrating any of them.
+
+## In use: USDA SR Legacy (via FoodData Central)
+
+| | |
+| --- | --- |
+| Publisher | U.S. Department of Agriculture, Agricultural Research Service |
+| Release | Standard Reference Legacy, April 2018 — the final SR release; no longer updated |
+| Coverage | 7,793 foods, mostly generic/commodity foods, per 100 g edible portion, with household portions |
+| Licence | Public domain (CC0 1.0). USDA asks to be cited |
+| Access | Free bulk download (JSON/CSV), no key: https://fdc.nal.usda.gov/download-datasets |
+| In this repo | 221 curated foods in `data/seed/foods.json`, selected by `data/seed/curated-foods.txt`. Values are copied unmodified; only the administrative suffix on some names is removed |
+
+**Nutrients mapped** (FDC nutrient id): energy 1008, protein 1003, fat 1004, carbohydrate by difference 1005,
+fibre 1079, sugars 2000, saturated fat 1258, vitamin A RAE 1106, retinol 1105, thiamin 1165, riboflavin 1166,
+niacin 1167, pantothenic acid 1170, B6 1175, folate DFE 1190, folic acid 1186, B12 1178, C 1162, D 1114,
+E (α-tocopherol) 1109, K (phylloquinone) 1185, calcium 1087, iron 1089, magnesium 1090, potassium 1092, sodium 1093,
+zinc 1095, selenium 1103, copper 1098, manganese 1101, phosphorus 1091.
+
+**Limitations**
+
+- **No iodine and no biotin** anywhere in the release. USDA publishes iodine separately (USDA/FDA/ODS-NIH iodine
+  database) — a candidate for a later import.
+- Not every food has every nutrient. In the seed set, vitamin K is missing for 12 foods, vitamins D and E for 9 each,
+  pantothenic acid for 7, selenium and folate for 4 each.
+- US foods, US fortification practice (e.g. enriched flour, vitamin D milk) and US soils; frozen in 2018.
+- Many values are calculated or imputed by USDA rather than analysed; the download marks each value's derivation,
+  which the app does not yet store.
+- Vitamin A is in RAE, niacin is preformed only, vitamin K is K1 only (see `reference-values.md`).
+
+### Other FoodData Central data types (not integrated)
+
+| Type | Notes |
+| --- | --- |
+| Foundation Foods | Newer analytical data with sample metadata; a few hundred foods, updated twice a year; some iodine values |
+| FNDDS (Survey) | ~7,000 foods as eaten, including mixed dishes; 65 nutrients; values largely derived from SR |
+| Branded Foods | Hundreds of thousands of label entries from industry; label nutrients only, so micronutrient coverage is poor |
+
+The FDC REST API needs a free api.data.gov key and is rate-limited; the adapter here reads the bulk download format,
+and FDC nutrient ids are the same across data types, so `FDC_NUTRIENT_IDS` can be reused.
+
+## Candidate: UK CoFID
+
+McCance and Widdowson's *Composition of Foods Integrated Dataset*, published by the UK government (OHID, formerly
+Public Health England). About 2,900 foods in an Excel workbook.
+
+- **Strengths**: UK/European foods and recipes; includes **iodine**, **biotin**, selenium, and both total and
+  component vitamin values; vitamin A as retinol equivalents and niacin equivalents, which match EFSA's units.
+- **Licence**: Open Government Licence v3.0 (attribution required) — to be confirmed for the release used.
+- **Limitations**: some analytical values are decades old; cells may contain `Tr` (trace) and `N` (present in
+  significant quantity but not determined), which must map to "small known value" and "missing" respectively — never
+  both to zero; no household portion weights in the dataset.
+
+## Candidates: other European datasets
+
+| Dataset | Country / publisher | Notes |
+| --- | --- | --- |
+| CIQUAL | France, ANSES | ~3,000 foods, ~60 components including iodine; open licence (Licence Ouverte); French and English names |
+| Frida | Denmark, DTU | ~1,300 foods; broad micronutrient coverage including iodine and biotin; free with attribution |
+| Fineli | Finland, THL | ~4,000 foods; open data (CC BY 4.0) |
+| NEVO | Netherlands, RIVM | ~2,300 foods; free download subject to RIVM's terms |
+| BLS | Germany, MRI | ~7,000+ foods, very complete nutrient matrix (largely calculated); licence terms changed with version 4 — check |
+| EuroFIR FoodEXplorer | EuroFIR AISBL | Harmonised access to many national datasets; membership required |
+
+## Integration notes for the next source
+
+1. Write an adapter that returns `NormalisedFood` and a `FoodSourceInfo` with the licence.
+2. Convert every value to the catalogue unit with `convertAmount`; it throws on unknown or incommensurable units
+   (including IU) rather than guessing.
+3. Leave absent, `N`, or non-numeric values out of `nutrients`. Keep reported zeros.
+4. Mixing sources means mixing definitions (RE vs RAE, NE vs niacin, fibre methods). Storing the definition alongside
+   each value is the next schema step before a second source is merged into the same totals.

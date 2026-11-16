@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHT
+  MODERATE
+  ACTIVE
+  VERY_ACTIVE
+}
+
+enum Goal {
+  LOSE
+  MAINTAIN
+  GAIN
+}
+
+enum Meal {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+model User {
+  id        String       @id @default(cuid())
+  email     String       @unique
+  name      String?
+  createdAt DateTime     @default(now())
+  profile   Profile?
+  entries   DiaryEntry[]
+}
+
+/// Everything reference values and targets depend on. All fields optional:
+/// targets fall back to generic values until the profile is filled in.
+model Profile {
+  userId            String         @id
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  birthYear         Int?
+  sex               Sex?
+  heightCm          Decimal?       @db.Decimal(5, 1)
+  weightKg          Decimal?       @db.Decimal(5, 1)
+  activityLevel     ActivityLevel?
+  goal              Goal?
+  dietaryPreference String?
+  allergies         String[]       @default([])
+  /// User-defined goals. Null means "use the computed reference value".
+  energyTargetKcal  Int?
+  proteinTargetG    Decimal?       @db.Decimal(6, 1)
+  carbsTargetG      Decimal?       @db.Decimal(6, 1)
+  fatTargetG        Decimal?       @db.Decimal(6, 1)
+  fibreTargetG      Decimal?       @db.Decimal(6, 1)
+  updatedAt         DateTime       @updatedAt
+}
+
+/// A food composition database (e.g. USDA SR Legacy), with its licence.
+model FoodSource {
+  id        String @id
+  name      String
+  version   String
+  publisher String
+  license   String
+  url       String
+  foods     Food[]
+}
+
+model Food {
+  id           String          @id @default(cuid())
+  sourceId     String
+  source       FoodSource      @relation(fields: [sourceId], references: [id])
+  /// Identifier of the food in the source database (e.g. FDC id).
+  sourceFoodId String
+  name         String
+  category     String?
+  nutrients    FoodNutrient[]
+  portions     FoodPortion[]
+  entries      DiaryEntry[]
+
+  @@unique([sourceId, sourceFoodId])
+  @@index([name])
+}
+
+/// One nutrient value per 100 g of edible portion.
+/// A nutrient the source does not report has NO row — missing is never zero.
+model FoodNutrient {
+  foodId      String
+  food        Food    @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  /// Key from the nutrient catalogue (src/domain/nutrients/catalog.ts).
+  nutrientKey String
+  amount      Decimal @db.Decimal(14, 4)
+  unit        String
+
+  @@id([foodId, nutrientKey])
+}
+
+/// A household measure for a food ("1 cup, chopped" = 21 g).
+model FoodPortion {
+  id         String  @id @default(cuid())
+  foodId     String
+  food       Food    @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  label      String
+  gramWeight Decimal @db.Decimal(10, 3)
+  sortOrder  Int     @default(0)
+
+  @@index([foodId])
+}
+
+model DiaryEntry {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Calendar day the food was eaten (no time component).
+  date     DateTime @db.Date
+  meal     Meal
+  foodId   String
+  food     Food     @relation(fields: [foodId], references: [id])
+  /// How the user expressed the amount: `quantity` × `unitLabel`
+  /// (unitLabel is "g" or a portion label such as "1 cup, chopped").
+  quantity  Decimal  @db.Decimal(10, 3)
+  unitLabel String
+  /// Weight of one unit in grams (1 for "g").
+  unitGrams Decimal  @db.Decimal(10, 3)
+  /// Total grams eaten = quantity × unitGrams. All nutrient maths uses this.
+  grams     Decimal  @db.Decimal(10, 3)
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+}
