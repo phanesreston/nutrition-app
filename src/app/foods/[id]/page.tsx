@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, PencilLine } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { AddFoodDialog } from "@/components/food/add-food-dialog";
 import { ProductImage } from "@/components/food/product-image";
 import { PageHeader } from "@/components/page-header";
@@ -47,6 +48,11 @@ export default async function FoodPage({ params }: { params: Params }) {
         <ArrowLeft className="size-4" aria-hidden /> Food search
       </Link>
       <PageHeader title={food.name} description={[food.brand, food.category].filter(Boolean).join(" · ") || undefined}>
+        <Button asChild variant="outline">
+          <Link href={`/admin/foods/${food.id}`}>
+            <PencilLine /> Correct this food
+          </Link>
+        </Button>
         <AddFoodDialog date={today} food={food} label="Add to diary" />
       </PageHeader>
 

@@ -227,14 +227,11 @@ export function ScanFlow({ date, meal }: { date: string; meal?: Meal }) {
               </div>
               <div className="flex flex-wrap gap-2">
                 {again}
-                {!food.isCustom ? (
-                  <Button
-                    variant="ghost"
-                    onClick={() => setStep({ name: "custom", barcode: result.barcode, initialName: food.name, initialBrand: food.brand ?? "" })}
-                  >
-                    <PencilLine /> Wrong values? Enter your own
-                  </Button>
-                ) : null}
+                <Button asChild variant="ghost">
+                  <Link href={`/admin/foods/${food.id}`}>
+                    <PencilLine /> Something wrong? Correct it
+                  </Link>
+                </Button>
               </div>
             </>
           )}

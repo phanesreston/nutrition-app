@@ -99,6 +99,18 @@ model Food {
   /// Set for custom foods; null for foods from a shared database.
   createdByUserId String?
   createdBy    User?           @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  description  String?
+  /// The record exactly as last imported from its source (a NormalisedFood),
+  /// never modified by admin edits. The other columns on this model, and its
+  /// nutrients and portions, hold the EFFECTIVE values: sourceData with the
+  /// admin overrides applied. Null for rows that predate this column.
+  sourceData   Json?
+  createdAt    DateTime        @default(now())
+  /// Last time an administrator changed this food.
+  editedAt     DateTime?
+  overrides    FoodOverride[]
+  images       FoodImage[]
+  audits       FoodAudit[]
   nutrients    FoodNutrient[]
   portions     FoodPortion[]
   entries      DiaryEntry[]
@@ -117,6 +129,10 @@ model FoodNutrient {
   nutrientKey String
   amount      Decimal @db.Decimal(14, 4)
   unit        String
+  /// Where the effective value comes from: "admin" (correction),
+  /// "admin-estimate", "label" (declared on the pack), "reference"
+  /// (reference database), "user" (entered in a custom food).
+  origin      String  @default("reference")
 
   @@id([foodId, nutrientKey])
 }
@@ -150,7 +166,64 @@ model DiaryEntry {
   unitGrams Decimal  @db.Decimal(10, 3)
   /// Total grams eaten = quantity × unitGrams. All nutrient maths uses this.
   grams     Decimal  @db.Decimal(10, 3)
+  /// Per-100 nutrient values of the food as they were when this entry was
+  /// logged ({ nutrientKey: "amount" }). Totals are computed from this, so
+  /// later corrections to the food do not silently change past days.
+  per100g   Json?
   createdAt DateTime @default(now())
 
   @@index([userId, date])
+}
+
+/// An administrator's correction to one field of a food. The imported value
+/// stays in Food.sourceData; this row wins over it until it is removed.
+model FoodOverride {
+  foodId    String
+  food      Food     @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  /// "name", "brand", "barcode", "category", "description", "ingredients",
+  /// "amountUnit", "servingSize", "packageQuantity", "image", or
+  /// "n:<nutrientKey>" for a nutrient value.
+  field     String
+  /// The corrected value. Null means "explicitly none / unknown".
+  value     String?
+  /// True when the administrator marked the value as an estimate.
+  estimated Boolean  @default(false)
+  updatedBy String
+  updatedAt DateTime @updatedAt
+
+  @@id([foodId, field])
+}
+
+/// An uploaded product photograph. The file lives in the upload directory
+/// under `filename`; it is only ever served by id.
+model FoodImage {
+  id         String   @id @default(cuid())
+  foodId     String
+  food       Food     @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  filename   String   @unique
+  mimeType   String
+  width      Int
+  height     Int
+  bytes      Int
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  @@index([foodId])
+}
+
+/// One changed field per row: who changed what, from what, to what, when.
+model FoodAudit {
+  id        String   @id @default(cuid())
+  foodId    String
+  food      Food     @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  field     String
+  oldValue  String?
+  newValue  String?
+  /// "edit", "restore" (back to the imported value), "revert" (undo of an
+  /// earlier edit) or "recalculate" (past diary entries updated).
+  action    String
+  adminId   String
+  createdAt DateTime @default(now())
+
+  @@index([foodId, createdAt])
 }

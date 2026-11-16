@@ -78,9 +78,19 @@ export async function getDayView(userId: string, date: string): Promise<DayView>
   const mealEnergy: Record<Meal, number> = { BREAKFAST: 0, LUNCH: 0, DINNER: 0, SNACK: 0 };
 
   for (const row of rows) {
+    // Use the values captured when the entry was logged, so correcting a
+    // food later does not rewrite days already recorded. (Entries always
+    // have a snapshot; the live values are only a fallback.)
     const per100g: Composition = {};
-    for (const n of row.food.nutrients) {
-      if (isNutrientKey(n.nutrientKey)) per100g[n.nutrientKey] = n.amount.toString();
+    const snapshot = row.per100g as Record<string, unknown> | null;
+    if (snapshot && typeof snapshot === "object") {
+      for (const [key, value] of Object.entries(snapshot)) {
+        if (isNutrientKey(key) && (typeof value === "string" || typeof value === "number")) per100g[key] = String(value);
+      }
+    } else {
+      for (const n of row.food.nutrients) {
+        if (isNutrientKey(n.nutrientKey)) per100g[n.nutrientKey] = n.amount.toString();
+      }
     }
     const grams = row.grams.toString();
     const foodName = displayName(row.food);

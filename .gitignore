@@ -43,3 +43,6 @@ next-env.d.ts
 
 # barcode reader binary, copied from node_modules on install
 /public/vendor/
+
+# uploaded product photos (default UPLOAD_DIR)
+/storage/

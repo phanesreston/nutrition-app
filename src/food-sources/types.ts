@@ -35,6 +35,7 @@ export interface NormalisedFood {
   brand?: string | null;
   imageUrl?: string | null;
   ingredients?: string | null;
+  description?: string | null;
   /** Unit the values are per 100 of. Defaults to grams. */
   amountUnit?: "g" | "ml";
   nutrients: Partial<Record<NutrientKey, { amount: string; unit: Unit }>>;
