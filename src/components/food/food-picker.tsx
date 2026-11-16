@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { BASE_PATH } from "@/lib/base-path";
 import { formatNumber } from "@/lib/format";
 import type { FoodView } from "@/server/foods";
 
@@ -17,7 +18,7 @@ export function FoodPicker({ onPick }: { onPick: (food: FoodView) => void }) {
     const timer = setTimeout(
       async () => {
         try {
-          const res = await fetch(`/api/foods/search?q=${encodeURIComponent(query)}`, { signal: controller.signal });
+          const res = await fetch(`${BASE_PATH}/api/foods/search?q=${encodeURIComponent(query)}`, { signal: controller.signal });
           if (!res.ok) throw new Error(String(res.status));
           const data = (await res.json()) as { foods: FoodView[] };
           setFoods(data.foods);
