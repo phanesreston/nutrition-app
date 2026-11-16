@@ -26,6 +26,7 @@ export function formatPercent(fraction: number): string {
   return `${formatNumber(percent)}%`;
 }
 
-export function formatGrams(grams: number): string {
-  return `${formatNumber(grams, grams < 10 ? 1 : 0)} g`;
+/** An amount of food in its own unit: grams, or millilitres for drinks. */
+export function formatGrams(amount: number, unit: "g" | "ml" = "g"): string {
+  return `${formatNumber(amount, amount < 100 ? 1 : 0)} ${unit}`;
 }

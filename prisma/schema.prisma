@@ -40,6 +40,7 @@ model User {
   createdAt DateTime     @default(now())
   profile   Profile?
   entries   DiaryEntry[]
+  foods     Food[]
 }
 
 /// Everything reference values and targets depend on. All fields optional:
@@ -83,12 +84,28 @@ model Food {
   sourceFoodId String
   name         String
   category     String?
+  /// Canonical GTIN for packaged products (EAN-8 as 8 digits; UPC-A and
+  /// EAN-13 as 13 digits). Not unique: a user's custom food may share a
+  /// barcode with an Open Food Facts product and takes precedence for them.
+  barcode      String?
+  brand        String?
+  imageUrl     String?
+  ingredients  String?
+  /// Unit the nutrient values are "per 100" of: "g", or "ml" for drinks
+  /// labelled per 100 ml. Diary amounts for the food are in the same unit.
+  amountUnit   String          @default("g")
+  /// When the record was last fetched from its remote source (cache age).
+  fetchedAt    DateTime?
+  /// Set for custom foods; null for foods from a shared database.
+  createdByUserId String?
+  createdBy    User?           @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
   nutrients    FoodNutrient[]
   portions     FoodPortion[]
   entries      DiaryEntry[]
 
   @@unique([sourceId, sourceFoodId])
   @@index([name])
+  @@index([barcode])
 }
 
 /// One nutrient value per 100 g of edible portion.

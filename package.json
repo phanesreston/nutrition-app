@@ -16,10 +16,11 @@
     "db:setup": "prisma migrate deploy && prisma db seed",
     "db:import-fdc": "tsx scripts/import-fdc.ts",
     "seed:build": "tsx scripts/build-seed.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && node scripts/copy-scanner-wasm.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "barcode-detector": "^3.2.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",

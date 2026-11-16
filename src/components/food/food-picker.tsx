@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import Link from "next/link";
+import { ScanBarcode, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { BASE_PATH } from "@/lib/base-path";
 import { formatNumber } from "@/lib/format";
 import type { FoodView } from "@/server/foods";
 
 /** Debounced food search that reports the chosen food to its parent. */
-export function FoodPicker({ onPick }: { onPick: (food: FoodView) => void }) {
+export function FoodPicker({ onPick, scanHref }: { onPick: (food: FoodView) => void; scanHref?: string }) {
   const [query, setQuery] = useState("");
   const [foods, setFoods] = useState<FoodView[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -49,6 +50,14 @@ export function FoodPicker({ onPick }: { onPick: (food: FoodView) => void }) {
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
+      {scanHref ? (
+        <Link
+          href={scanHref}
+          className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-2.5 text-sm font-medium hover:bg-muted"
+        >
+          <ScanBarcode className="size-4" aria-hidden /> Scan a barcode instead
+        </Link>
+      ) : null}
       <div className="-mx-2 h-[46dvh] overflow-y-auto sm:h-80" aria-live="polite">
         {failed ? (
           <p className="px-2 py-6 text-center text-sm text-critical-text">Search failed. Check that the app is running and try again.</p>
@@ -69,10 +78,12 @@ export function FoodPicker({ onPick }: { onPick: (food: FoodView) => void }) {
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium">{food.name}</span>
-                    <span className="block truncate text-xs text-muted-foreground">{food.category}</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {[food.brand, food.category].filter(Boolean).join(" · ")}
+                    </span>
                   </span>
                   <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-                    {food.per100g.energy !== undefined ? `${formatNumber(food.per100g.energy)} kcal` : "–"} / 100 g
+                    {food.per100g.energy !== undefined ? `${formatNumber(food.per100g.energy)} kcal` : "–"} / 100 {food.amountUnit}
                   </span>
                 </button>
               </li>

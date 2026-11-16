@@ -10,6 +10,8 @@ export async function importFoods(
   prisma: PrismaClient,
   source: FoodSourceInfo,
   foods: readonly NormalisedFood[],
+  /** Extra columns set on every imported food, e.g. `{ fetchedAt }` for cached remote records. */
+  extra: { fetchedAt?: Date } = {},
 ): Promise<number> {
   await prisma.foodSource.upsert({ where: { id: source.id }, update: source, create: source });
 
@@ -23,10 +25,20 @@ export async function importFoods(
     const where = { sourceId_sourceFoodId: { sourceId: source.id, sourceFoodId: food.sourceFoodId } };
 
     await prisma.$transaction(async (tx) => {
+      const fields = {
+        name: food.name,
+        category: food.category,
+        barcode: food.barcode ?? null,
+        brand: food.brand ?? null,
+        imageUrl: food.imageUrl ?? null,
+        ingredients: food.ingredients ?? null,
+        amountUnit: food.amountUnit ?? "g",
+        ...extra,
+      };
       const row = await tx.food.upsert({
         where,
-        update: { name: food.name, category: food.category },
-        create: { sourceId: source.id, sourceFoodId: food.sourceFoodId, name: food.name, category: food.category },
+        update: fields,
+        create: { sourceId: source.id, sourceFoodId: food.sourceFoodId, ...fields },
       });
       await tx.foodNutrient.deleteMany({ where: { foodId: row.id } });
       await tx.foodPortion.deleteMany({ where: { foodId: row.id } });

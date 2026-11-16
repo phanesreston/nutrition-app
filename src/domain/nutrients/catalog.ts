@@ -9,7 +9,7 @@
 
 export type Unit = "kcal" | "g" | "mg" | "µg";
 
-export type NutrientGroup = "macro" | "vitamin" | "mineral" | "auxiliary";
+export type NutrientGroup = "macro" | "vitamin" | "mineral" | "other" | "auxiliary";
 
 export const NUTRIENT_KEYS = [
   // Energy and macronutrients
@@ -44,6 +44,13 @@ export const NUTRIENT_KEYS = [
   "manganese",
   "phosphorus",
   "iodine",
+  // Other micronutrients that packaged-food labels can declare. Stored,
+  // summed and displayed, but without a dashboard meter or target yet.
+  "chloride",
+  "fluoride",
+  "chromium",
+  "molybdenum",
+  "choline",
   // Auxiliary values: stored and summed, but only used to interpret other
   // nutrients (e.g. the vitamin A upper limit applies to retinol only).
   "sugars",
@@ -368,6 +375,11 @@ const defs: NutrientDefinition[] = [
     considerations:
       "USDA SR Legacy contains no iodine values, so intake cannot be estimated from the current food data. Iodine content also varies greatly with soil, animal feed and use of iodised salt.",
   },
+  { key: "chloride", name: "Chloride", group: "other", unit: "mg", decimals: 0 },
+  { key: "fluoride", name: "Fluoride", group: "other", unit: "mg", decimals: 2 },
+  { key: "chromium", name: "Chromium", group: "other", unit: "µg", decimals: 0 },
+  { key: "molybdenum", name: "Molybdenum", group: "other", unit: "µg", decimals: 0 },
+  { key: "choline", name: "Choline", group: "other", unit: "mg", decimals: 0 },
   { key: "sugars", name: "Total sugars", group: "auxiliary", unit: "g", decimals: 1 },
   { key: "saturatedFat", name: "Saturated fat", group: "auxiliary", unit: "g", decimals: 1 },
   { key: "retinol", name: "Retinol (preformed vitamin A)", group: "auxiliary", unit: "µg", decimals: 0 },
@@ -382,6 +394,7 @@ export const MACRO_KEYS = ["energy", "protein", "carbs", "fat", "fibre"] as cons
 export const VITAMIN_KEYS = defs.filter((d) => d.group === "vitamin").map((d) => d.key);
 export const MINERAL_KEYS = defs.filter((d) => d.group === "mineral").map((d) => d.key);
 export const MICRO_KEYS: NutrientKey[] = [...VITAMIN_KEYS, ...MINERAL_KEYS];
+export const OTHER_KEYS = defs.filter((d) => d.group === "other").map((d) => d.key);
 /** Nutrients that count towards a food's data-completeness score. */
 export const CORE_KEYS: NutrientKey[] = [...MACRO_KEYS, ...MICRO_KEYS];
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { ScanBarcode, Search } from "lucide-react";
 import { AddFoodDialog } from "@/components/food/add-food-dialog";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getToday } from "@/server/request";
 import { formatNumber } from "@/lib/format";
+import { getCurrentUser } from "@/server/auth";
 import { countFoods, searchFoods } from "@/server/foods";
 
 export const metadata: Metadata = { title: "Food Search" };
@@ -17,15 +18,22 @@ export const metadata: Metadata = { title: "Food Search" };
 export default async function FoodsPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
   const raw = (await searchParams).q;
   const q = (Array.isArray(raw) ? raw[0] : raw)?.slice(0, 100).trim() ?? "";
-  const [foods, total] = await Promise.all([searchFoods(q, 40), countFoods()]);
   const today = await getToday();
+  const user = await getCurrentUser();
+  const [foods, total] = await Promise.all([searchFoods(q, 40, user.id), countFoods()]);
 
   return (
     <>
       <PageHeader
         title="Food Search"
-        description={`${formatNumber(total)} foods from USDA SR Legacy. Values are per 100 g of edible portion.`}
-      />
+        description={`${formatNumber(total)} foods: USDA SR Legacy, plus packaged products you have scanned and your own custom foods.`}
+      >
+        <Button asChild variant="outline">
+          <Link href="/scan">
+            <ScanBarcode /> Scan barcode
+          </Link>
+        </Button>
+      </PageHeader>
 
       <Form action="/foods" role="search" className="mb-5 flex gap-2">
         <div className="relative flex-1">
@@ -73,7 +81,7 @@ export default async function FoodsPage({ searchParams }: { searchParams: Promis
                       {food.per100g.carbs !== undefined ? formatNumber(food.per100g.carbs, 1) : "–"} · F{" "}
                       {food.per100g.fat !== undefined ? formatNumber(food.per100g.fat, 1) : "–"} g
                     </span>
-                    <span className="hidden truncate md:inline">{food.category}</span>
+                    <span className="hidden truncate md:inline">{[food.brand, food.category].filter(Boolean).join(" · ")}</span>
                   </div>
                 </div>
                 <Badge className="hidden sm:inline-flex" title="Core nutrients with a value in the source database">

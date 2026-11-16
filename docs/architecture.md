@@ -42,6 +42,37 @@ Data completeness is derived, not stored: of the 29 core nutrients (5 macro + 24
    - `assessNutrient` produces a status: `below`, `met`, `within` (limit-type), `near-upper`, `over`, `no-data`.
 3. The result is converted to plain numbers and rendered by server components; charts are client components.
 
+## Barcode lookup
+
+```
+camera / typed number
+  -> GET /api/barcode/[code]            src/app/api/barcode/[code]/route.ts
+  -> lookupBarcode()                    src/server/barcode.ts
+       1. parseBarcode(): check digit, canonical form          src/domain/barcode.ts
+       2. the user's own custom food with that barcode
+       3. cached Open Food Facts product younger than 30 days
+       4. Open Food Facts API v3 (8 s timeout, rate-limited)   src/food-sources/open-food-facts/client.ts
+       5. normaliseOffProduct() -> importFoods()               …/mapper.ts, src/food-sources/import.ts
+  -> product preview -> existing serving form -> existing addDiaryEntry action
+```
+
+A scanned product is an ordinary `Food` row (`sourceId = "open-food-facts"`, `sourceFoodId` = barcode) with
+`FoodNutrient` and `FoodPortion` rows, so the diary, totals, targets and dashboard need no special handling.
+`Food` carries the packaged-product extras: `barcode`, `brand`, `imageUrl`, `ingredients`, `amountUnit`
+(`"g"`, or `"ml"` for drinks whose values are per 100 ml — diary amounts for that food are then in ml),
+`fetchedAt` (cache age) and `createdByUserId` (custom foods, visible only to their owner).
+
+Barcodes are stored in one canonical form: EAN-8 as 8 digits; UPC-A zero-padded to 13 digits, which is also how
+Open Food Facts stores them; EAN-13 unchanged. UPC-E from a scanner is expanded to UPC-A first.
+
+Failure handling: an invalid code never leaves the server (HTTP 400); an unknown product is remembered for
+10 minutes and offers the custom-food form; a timeout, outage or rate limit falls back to an expired cached copy
+if there is one (marked as such) and otherwise reports the specific reason with a retry.
+
+The scanner uses the browser's `BarcodeDetector` where it supports retail codes and otherwise the
+`barcode-detector` ponyfill (ZXing compiled to WebAssembly). A code is accepted only when read identically in
+two consecutive frames and its check digit is valid.
+
 ## Rendering model
 
 Next.js Cache Components is on: the shell (navigation) is prerendered and each page's data streams in behind its

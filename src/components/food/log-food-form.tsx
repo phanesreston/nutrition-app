@@ -49,7 +49,7 @@ export function LogFoodForm({ food, date, defaultMeal, entry, onDone }: LogFoodF
   const [pending, startTransition] = useTransition();
 
   const initialUnit = entry
-    ? entry.unitLabel === "g"
+    ? entry.unitLabel === "g" || entry.unitLabel === "ml"
       ? "g"
       : (food.portions.find((p) => p.label === entry.unitLabel)?.id ?? "g")
     : (food.portions[0]?.id ?? "g");
@@ -118,10 +118,10 @@ export function LogFoodForm({ food, date, defaultMeal, entry, onDone }: LogFoodF
               setUnit(next);
             }}
           >
-            <option value="g">grams</option>
+            <option value="g">{food.amountUnit === "ml" ? "millilitres" : "grams"}</option>
             {food.portions.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.label} ({formatGrams(p.gramWeight)})
+                {p.label} ({formatGrams(p.gramWeight, food.amountUnit)})
               </option>
             ))}
           </NativeSelect>
@@ -149,7 +149,7 @@ export function LogFoodForm({ food, date, defaultMeal, entry, onDone }: LogFoodF
 
       <div className="rounded-lg bg-muted/60 p-3">
         <div className="mb-2 text-xs text-muted-foreground">
-          {grams ? `This serving · ${formatGrams(grams.toNumber())}` : "Enter an amount to see nutrition"}
+          {grams ? `This serving · ${formatGrams(grams.toNumber(), food.amountUnit)}` : "Enter an amount to see nutrition"}
         </div>
         <dl className="grid grid-cols-4 gap-2">
           {PREVIEW.map((p) => {

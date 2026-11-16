@@ -64,6 +64,7 @@ export function AddFoodDialog({
               )}
               <DialogTitle>{food.name}</DialogTitle>
               <DialogDescription>
+                {food.brand ? `${food.brand} · ` : ""}
                 {food.source.id === "usda-sr-legacy" ? "USDA SR Legacy" : food.source.name} · {food.completeness.known} of{" "}
                 {food.completeness.total} nutrients available
               </DialogDescription>
@@ -76,7 +77,7 @@ export function AddFoodDialog({
               <DialogTitle>Add food</DialogTitle>
               <DialogDescription>Search the food database, then choose a serving size.</DialogDescription>
             </DialogHeader>
-            <FoodPicker onPick={setPicked} />
+            <FoodPicker onPick={setPicked} scanHref={`/scan?date=${date}${meal ? `&meal=${meal}` : ""}`} />
           </>
         )}
       </DialogContent>

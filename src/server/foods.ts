@@ -16,6 +16,14 @@ export interface FoodView {
   id: string;
   name: string;
   category: string | null;
+  /** Packaged-product details; null for generic foods. */
+  barcode: string | null;
+  brand: string | null;
+  imageUrl: string | null;
+  ingredients: string | null;
+  /** "g", or "ml" when values are per 100 ml. Diary amounts use the same unit. */
+  amountUnit: "g" | "ml";
+  isCustom: boolean;
   source: { id: string; name: string; version: string; license: string; url: string };
   sourceFoodId: string;
   /** Per 100 g. A key that is absent is unknown — not zero. */
@@ -35,6 +43,12 @@ export function toFoodView(row: FoodRow): FoodView {
     id: row.id,
     name: row.name,
     category: row.category,
+    barcode: row.barcode,
+    brand: row.brand,
+    imageUrl: row.imageUrl,
+    ingredients: row.ingredients,
+    amountUnit: row.amountUnit === "ml" ? "ml" : "g",
+    isCustom: row.createdByUserId !== null,
     source: {
       id: row.source.id,
       name: row.source.name,
@@ -47,6 +61,15 @@ export function toFoodView(row: FoodRow): FoodView {
     portions: row.portions.map((p) => ({ id: p.id, label: p.label, gramWeight: p.gramWeight.toNumber() })),
     completeness: { known: CORE_KEYS.length - missing.length, total: CORE_KEYS.length, missing },
   };
+}
+
+/**
+ * Name to show where the brand is not displayed separately (diary rows,
+ * contributor lists): packaged products are often just called "Original".
+ */
+export function displayName(food: { name: string; brand: string | null }): string {
+  if (!food.brand || food.name.toLowerCase().includes(food.brand.toLowerCase())) return food.name;
+  return `${food.brand} ${food.name}`;
 }
 
 /** Rank: name starts with the query, then a word starts with it, then shorter names. */
@@ -62,10 +85,21 @@ function rank(name: string, query: string): number {
  * Search foods by name. Every whitespace-separated term must appear in the
  * name (case-insensitive), in any order. An empty query lists foods A–Z.
  */
-export async function searchFoods(query: string, limit = 30): Promise<FoodView[]> {
+export async function searchFoods(query: string, limit = 30, userId?: string): Promise<FoodView[]> {
   const terms = query.trim().split(/\s+/).filter(Boolean).slice(0, 6);
   const rows = await db.food.findMany({
-    where: { AND: terms.map((t) => ({ name: { contains: t, mode: "insensitive" as const } })) },
+    where: {
+      AND: [
+        // Shared foods, plus the current user's own custom foods.
+        { OR: [{ createdByUserId: null }, ...(userId ? [{ createdByUserId: userId }] : [])] },
+        ...terms.map((t) => ({
+          OR: [
+            { name: { contains: t, mode: "insensitive" as const } },
+            { brand: { contains: t, mode: "insensitive" as const } },
+          ],
+        })),
+      ],
+    },
     include: foodInclude,
     orderBy: { name: "asc" },
     take: terms.length ? 200 : limit,
@@ -77,10 +111,14 @@ export async function searchFoods(query: string, limit = 30): Promise<FoodView[]
   return rows.slice(0, limit).map(toFoodView);
 }
 
-export async function getFood(id: string): Promise<FoodView | null> {
+export async function getFood(id: string, userId?: string): Promise<FoodView | null> {
   const row = await db.food.findUnique({ where: { id }, include: foodInclude });
-  return row ? toFoodView(row) : null;
+  // Another user's custom food is not visible.
+  if (!row || (row.createdByUserId !== null && row.createdByUserId !== userId)) return null;
+  return toFoodView(row);
 }
+
+export { foodInclude };
 
 export async function countFoods(): Promise<number> {
   return db.food.count();

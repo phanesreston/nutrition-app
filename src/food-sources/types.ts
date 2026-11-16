@@ -30,6 +30,13 @@ export interface NormalisedFood {
   sourceFoodId: string;
   name: string;
   category: string | null;
+  /** Canonical GTIN, for packaged products. */
+  barcode?: string | null;
+  brand?: string | null;
+  imageUrl?: string | null;
+  ingredients?: string | null;
+  /** Unit the values are per 100 of. Defaults to grams. */
+  amountUnit?: "g" | "ml";
   nutrients: Partial<Record<NutrientKey, { amount: string; unit: Unit }>>;
   portions: NormalisedPortion[];
 }

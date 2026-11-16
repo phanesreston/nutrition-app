@@ -8,6 +8,7 @@ import { scalePer100g } from "@/domain/calc/portion";
 import { assessNutrient, type IntakeStatus } from "@/domain/calc/status";
 import type { DataCoverage } from "@/domain/calc/intake";
 import type { NutrientTarget, Targets } from "@/domain/reference/targets";
+import { displayName } from "./foods";
 import { getTargets } from "./profile";
 
 export const MEALS: readonly Meal[] = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"];
@@ -27,6 +28,8 @@ export interface EntryView {
   unitLabel: string;
   unitGrams: number;
   grams: number;
+  /** "g" or "ml": the unit `grams` is measured in for this food. */
+  amountUnit: "g" | "ml";
   /** Null when the food has no value for that nutrient. */
   energy: number | null;
   protein: number | null;
@@ -80,7 +83,8 @@ export async function getDayView(userId: string, date: string): Promise<DayView>
       if (isNutrientKey(n.nutrientKey)) per100g[n.nutrientKey] = n.amount.toString();
     }
     const grams = row.grams.toString();
-    items.push({ id: row.id, label: row.food.name, grams, per100g });
+    const foodName = displayName(row.food);
+    items.push({ id: row.id, label: foodName, grams, per100g });
 
     const amount = (key: NutrientKey) => scalePer100g(per100g[key], grams)?.toNumber() ?? null;
     const energy = amount("energy");
@@ -89,11 +93,12 @@ export async function getDayView(userId: string, date: string): Promise<DayView>
       id: row.id,
       meal: row.meal,
       foodId: row.foodId,
-      foodName: row.food.name,
+      foodName,
       quantity: row.quantity.toNumber(),
       unitLabel: row.unitLabel,
       unitGrams: row.unitGrams.toNumber(),
       grams: row.grams.toNumber(),
+      amountUnit: row.food.amountUnit === "ml" ? "ml" : "g",
       energy,
       protein: amount("protein"),
       carbs: amount("carbs"),

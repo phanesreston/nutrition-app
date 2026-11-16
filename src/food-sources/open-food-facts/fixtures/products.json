@@ -1,0 +1,200 @@
+{
+ "weetabix": {
+  "code": "5010029000023",
+  "product": {
+   "code": "5010029000023",
+   "product_name": "Original",
+   "product_name_en": "Original",
+   "generic_name": "",
+   "brands": "Weetabix",
+   "quantity": "430 gram",
+   "product_quantity": 430,
+   "product_quantity_unit": "g",
+   "serving_size": "37.5 gram",
+   "serving_quantity": 37.5,
+   "serving_quantity_unit": "g",
+   "nutrition_data_per": "100g",
+   "ingredients_text": "Volkoren tarwe (95%), gerstemoutextract, suiker, zout, niacine, ijzer, vitamines B2, B1 en B9.",
+   "ingredients_text_en": "Whole wheat (95%), malted barley extract, sugar, salt, niacin, iron, riboflavin (b2), thiamin (b1), folic acid.",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/501/002/900/0023/front_en.121.400.jpg",
+   "image_front_small_url": "https://images.openfoodfacts.org/images/products/501/002/900/0023/front_en.121.200.jpg",
+   "categories": "en:Breakfast cereals rich in fibre, fr:Weetabix",
+   "lang": "nl",
+   "nutriments": {
+    "added-sugars_100g": 0,
+    "carbohydrates_100g": 69,
+    "energy-kcal_100g": 362,
+    "energy-kj_100g": 1531,
+    "energy_100g": 1531,
+    "fat_100g": 2,
+    "fiber_100g": 10,
+    "iron_100g": 0.012,
+    "proteins_100g": 12,
+    "salt_100g": 0.28,
+    "saturated-fat_100g": 0.6,
+    "sodium_100g": 0.104,
+    "starch_100g": 0,
+    "sugars_100g": 4.2,
+    "vitamin-b1_100g": 0.00094,
+    "vitamin-b2_100g": 0.0012,
+    "vitamin-b6_100g": 0.00242666666666667,
+    "vitamin-b9_100g": 0.00017,
+    "vitamin-pp_100g": 0.014
+   },
+   "nutriments_estimated": {
+    "iron_100g": 0.999
+   }
+  },
+  "result": {
+   "id": "product_found",
+   "lc_name": "Product found",
+   "name": "Product found"
+  },
+  "status": "success"
+ },
+ "redBull": {
+  "code": "9002490100070",
+  "product": {
+   "code": "9002490100070",
+   "product_name": "Bebida Energética Original Lata",
+   "product_name_en": "Energy Drink",
+   "generic_name": "Bebida energética",
+   "brands": "Red Bull",
+   "quantity": "250 ml",
+   "product_quantity": 250,
+   "product_quantity_unit": "ml",
+   "serving_size": "250ml",
+   "serving_quantity": 250,
+   "serving_quantity_unit": "ml",
+   "nutrition_data_per": "100ml",
+   "ingredients_text": "Agua, Sacarosa, Glucosa, Acidulante Ácido Cítrico, Dióxido de carbono, Taurina 0,4%, Regulador de Acidez (CaRED BULLonatos de Sodio, CaRED BULLonato Magnésico), Cafeína 0,03%, Vitaminas (Niacina, Ácido Pantoténico, B6, B12), Aromas, Colorantes (Caramelo, Riboflavina)",
+   "ingredients_text_en": "water, sucrose, glucose, acidulant (citric acid), carbon dioxide, taurine 0,4%, acidity correctors (sodium carbonates, magnesium carbonates), caffeine 0,03%, vitamins (niacin, pantothenic acid, b6, b12), aromas, colorants (natural caramel, riboflavins),",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/900/249/010/0070/front_en.245.400.jpg",
+   "image_front_small_url": "https://images.openfoodfacts.org/images/products/900/249/010/0070/front_en.245.200.jpg",
+   "categories": "Sodas, Bebidas energéticas, en:Napoje, en:Napoje-energetyczne, en:Napoje-i-składniki-do-napojow",
+   "lang": "es",
+   "nutriments": {
+    "added-sugars_100g": 11.03,
+    "caffeine_100g": 0.032,
+    "carbohydrates_100g": 11,
+    "energy-kcal_100g": 46,
+    "energy-kj_100g": 195,
+    "energy_100g": 195,
+    "fat_100g": 0,
+    "pantothenic-acid_100g": 0.002,
+    "proteins_100g": 0,
+    "salt_100g": 0.1,
+    "saturated-fat_100g": 0,
+    "sodium_100g": 0.04,
+    "sugars_100g": 11,
+    "vitamin-b12_100g": 0.000002,
+    "vitamin-b6_100g": 0.002,
+    "vitamin-pp_100g": 0.008
+   },
+   "nutriments_estimated": {
+    "iron_100g": 0.999
+   }
+  },
+  "result": {
+   "id": "product_found",
+   "lc_name": "Product found",
+   "name": "Product found"
+  },
+  "status": "success"
+ },
+ "oatly": {
+  "code": "7394376616228",
+  "product": {
+   "code": "7394376616228",
+   "product_name": "The original oat-ly barista edition oat drink",
+   "product_name_en": "The original oat-ly barista edition oat drink",
+   "generic_name": "Foamable oat drink with added vitamins and minerals",
+   "brands": "Oatly",
+   "quantity": "1l",
+   "product_quantity": 1000,
+   "product_quantity_unit": "ml",
+   "serving_size": "1 serving (100 ml)",
+   "serving_quantity": 100,
+   "serving_quantity_unit": "ml",
+   "nutrition_data_per": "100g",
+   "ingredients_text": "water,  oats  10%, rapeseed oil, acidity regulator (dipotassium phosphate), minerals (calcium carbonate, potassium iodide), salt, vitamins (d2, riboflavin and b12),",
+   "ingredients_text_en": "water,  oats  10%, rapeseed oil, acidity regulator (dipotassium phosphate), minerals (calcium carbonate, potassium iodide), salt, vitamins (d2, riboflavin and b12),",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/739/437/661/6228/front_en.197.400.jpg",
+   "image_front_small_url": "https://images.openfoodfacts.org/images/products/739/437/661/6228/front_en.197.200.jpg",
+   "categories": "Oat-based drinks",
+   "lang": "en",
+   "nutriments": {
+    "added-sugars_100g": 0,
+    "calcium_100g": 0.12,
+    "carbohydrates_100g": 7.1,
+    "energy-kcal_100g": 61,
+    "energy-kj_100g": 257,
+    "energy_100g": 257,
+    "fat_100g": 3,
+    "fiber_100g": 0.8,
+    "iodine_100g": 0.0000225,
+    "proteins_100g": 1.1,
+    "salt_100g": 0.0975,
+    "saturated-fat_100g": 0.3,
+    "sodium_100g": 0.039,
+    "sugars_100g": 3.4,
+    "vitamin-b12_100g": 2.4e-7,
+    "vitamin-b2_100g": 0.00021,
+    "vitamin-d_100g": 0.0000011
+   },
+   "nutriments_estimated": {
+    "iron_100g": 0.999
+   }
+  },
+  "result": {
+   "id": "product_found",
+   "lc_name": "Product found",
+   "name": "Product found"
+  },
+  "status": "success"
+ },
+ "nutella": {
+  "code": "3017620422003",
+  "product": {
+   "code": "3017620422003",
+   "product_name": "Nutella",
+   "product_name_en": "Nutella",
+   "generic_name": "Hazelnut And Cocoa Spread",
+   "brands": "Ferrero, Nutella",
+   "quantity": "400 g e",
+   "product_quantity": 400,
+   "product_quantity_unit": "g",
+   "serving_quantity_unit": "g",
+   "nutrition_data_per": "100g",
+   "ingredients_text": "sugar, palm oil",
+   "ingredients_text_en": "sugar, palm oil",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.879.400.jpg",
+   "image_front_small_url": "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.879.200.jpg",
+   "categories": "Hazelnut spreads, Confectionary based spreads, fr:Nutella",
+   "lang": "en",
+   "nutriments": {
+    "added-sugars_100g": 52.13,
+    "carbohydrates_100g": 57.5,
+    "energy-kcal_100g": 539,
+    "energy-kj_100g": 2252,
+    "energy_100g": 2252,
+    "fat_100g": 30.9,
+    "fiber_100g": 0,
+    "proteins_100g": 6.3,
+    "salt_100g": 0.107,
+    "saturated-fat_100g": 10.6,
+    "sodium_100g": 0.0428,
+    "sugars_100g": 56.3
+   },
+   "nutriments_estimated": {
+    "iron_100g": 0.999
+   }
+  },
+  "result": {
+   "id": "product_found",
+   "lc_name": "Product found",
+   "name": "Product found"
+  },
+  "status": "success"
+ }
+}

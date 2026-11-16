@@ -82,9 +82,9 @@ export default async function DiaryPage({
                             {entry.foodName}
                           </Link>
                           <div className="truncate text-xs text-muted-foreground tabular-nums">
-                            {entry.unitLabel === "g"
-                              ? formatGrams(entry.grams)
-                              : `${formatNumber(entry.quantity, 2)} × ${entry.unitLabel} · ${formatGrams(entry.grams)}`}
+                            {entry.unitLabel === "g" || entry.unitLabel === "ml"
+                              ? formatGrams(entry.grams, entry.amountUnit)
+                              : `${formatNumber(entry.quantity, 2)} × ${entry.unitLabel} · ${formatGrams(entry.grams, entry.amountUnit)}`}
                           </div>
                         </div>
                         <dl className="hidden shrink-0 gap-5 text-right text-xs text-muted-foreground tabular-nums md:flex">

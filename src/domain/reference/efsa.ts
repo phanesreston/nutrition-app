@@ -78,7 +78,20 @@ function round(value: number, decimals: number): number {
 
 type MicroKey = Exclude<
   NutrientKey,
-  "energy" | "protein" | "carbs" | "fat" | "fibre" | "sugars" | "saturatedFat" | "retinol" | "folicAcid"
+  | "energy"
+  | "protein"
+  | "carbs"
+  | "fat"
+  | "fibre"
+  | "sugars"
+  | "saturatedFat"
+  | "retinol"
+  | "folicAcid"
+  | "chloride"
+  | "fluoride"
+  | "chromium"
+  | "molybdenum"
+  | "choline"
 >;
 
 export function efsaMicronutrientReference(key: MicroKey, ctx: ReferenceContext): MicronutrientReference {

@@ -10,14 +10,16 @@ This is the **Phase 1 prototype**: a local, single-user app with a working daily
 - **Dashboard** — energy, macros, energy split, per-meal energy chart, and a progress meter for every vitamin and mineral.
 - **Food Diary** — breakfast / lunch / dinner / snacks; add, edit and delete entries; browse any day.
 - **Food Search** — 221 real foods from USDA SR Legacy, with a per-food nutrient table, serving sizes and provenance.
+- **Scan Barcode** — scan a pack with a phone camera (or type the number) to look a product up in Open Food Facts,
+  preview it, pick a serving and log it. Unknown products can be entered from the label and tied to the barcode.
 - **Nutrients** — every nutrient expandable: amount, reference, type of reference (PRI / AI / limit), upper level,
   what it does, food sources, caveats, and which logged foods supplied it.
 - **Settings** — profile (age, sex, height, weight, activity, goal), your own energy/macro targets, the resulting
   target table, light and dark mode.
 - Everything is stored in PostgreSQL and survives restarts.
 
-Not built yet (see [Roadmap](#roadmap)): insights and gap analysis, recommendations, history charts, custom foods,
-saved meals, copying meals, sign-in.
+Not built yet (see [Roadmap](#roadmap)): insights and gap analysis, recommendations, history charts, saved meals,
+copying meals, sign-in.
 
 ## Run it locally
 
@@ -49,6 +51,16 @@ Open http://localhost:3000.
   and point `DATABASE_URL` in `.env` at your database.
 - `npm run db:setup` applies the migrations and loads the seed foods. It is safe to re-run.
 
+### Barcode scanning
+
+- **The camera needs HTTPS.** Browsers only allow camera access on `https://` pages and on `localhost`. Over plain
+  `http://` on another address the scan screen says so and manual entry still works.
+- **Set `OFF_USER_AGENT` in `.env`** to something that identifies your deployment, e.g.
+  `"Nourish/0.1 (you@example.com)"`. Open Food Facts asks every app for this and may block anonymous clients.
+- Lookups go through this app's server (`GET /api/barcode/<code>`), never straight from the browser. Each product is
+  saved to PostgreSQL on first scan, so repeat scans make no outside request.
+- The barcode reader (ZXing, WebAssembly) is served by the app itself; `npm install` copies it into `public/vendor/`.
+
 ### Other commands
 
 | Command | What it does |
@@ -72,6 +84,7 @@ src/
     calc/            portion maths, intake summation, status assessment
   food-sources/    Integration layer: each database maps to one normalised food shape
     usda/            USDA SR Legacy adapter
+    open-food-facts/ Open Food Facts API client and mapper (barcode lookups)
   server/          Database access and use-cases (foods, diary day view, profile), server actions
   app/             Next.js routes (UI only) and the JSON search API
   components/      UI components; components/ui holds shadcn/ui-style primitives
@@ -106,7 +119,8 @@ More detail: [docs/architecture.md](docs/architecture.md), [docs/data-sources.md
 | Phase | Scope |
 | --- | --- |
 | **1 (done)** | App shell, dashboard, food database, logging, live macro and micronutrient totals, targets, persistence |
-| 2 | Custom foods, saved meals, copy a meal from a previous day, per-nutrient custom targets |
+| 1b (done) | Barcode scanning, Open Food Facts lookup with local caching, custom foods from a label |
+| 2 | Editing custom foods, saved meals, copy a meal from a previous day, per-nutrient custom targets |
 | 3 | Nutrient gap analysis: weekly averages, persistent vs. one-off lows, upper-limit and insufficient-data views |
 | 4 | Rules-based food recommendations that respect diet, allergies, energy budget and upper limits |
 | 5 | History: calendar, weekly/monthly trends, per-nutrient trends, target consistency |
