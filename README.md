@@ -12,6 +12,8 @@ This is the **Phase 1 prototype**: a local, single-user app with a working daily
 - **Food Search** — 221 real foods from USDA SR Legacy, with a per-food nutrient table, serving sizes and provenance.
 - **Scan Barcode** — scan a pack with a phone camera (or type the number) to look a product up in Open Food Facts,
   preview it, pick a serving and log it. Unknown products can be entered from the label and tied to the barcode.
+- **Admin** (`/admin`) — browse and search every food, find ones missing nutrition or a photo, and correct names,
+  nutrition, servings and photographs. Corrections survive re-imports, are audit-logged, and can be reverted.
 - **Nutrients** — every nutrient expandable: amount, reference, type of reference (PRI / AI / limit), upper level,
   what it does, food sources, caveats, and which logged foods supplied it.
 - **Settings** — profile (age, sex, height, weight, activity, goal), your own energy/macro targets, the resulting
@@ -61,11 +63,34 @@ Open http://localhost:3000.
   saved to PostgreSQL on first scan, so repeat scans make no outside request.
 - The barcode reader (ZXing, WebAssembly) is served by the app itself; `npm install` copies it into `public/vendor/`.
 
+### Admin area
+
+The admin area is **off until you set a password**. Add this to `.env` (at least 12 characters) and restart:
+
+```
+ADMIN_PASSWORD="choose-a-long-passphrase"
+```
+
+- Sign in at `/admin`. The session lasts 12 hours and ends when you sign out or change the password.
+- Every admin page, save, revert and upload checks the session on the server; the "Admin" link in the navigation is
+  only a link.
+- There are no individual admin accounts yet: everyone who knows the password is the same administrator in the
+  audit log. Use HTTPS in production, since the password is typed into a web form.
+- **Corrections are overrides.** The record imported from USDA or Open Food Facts is kept untouched. Each field you
+  change is stored separately and wins over it, including after a re-scan, a cache refresh or `npm run db:setup`.
+  "Restore" removes the override and the imported value returns.
+- **Past diary entries are not changed by a correction.** Each entry keeps the values it was logged with; the editor
+  has an explicit "Recalculate past entries" button for when you do want history updated.
+- **Photos** are stored in `UPLOAD_DIR` (default `./storage/uploads`). Keep that folder out of any web server's
+  document root and include it in backups. Uploads are checked by content, re-encoded to WebP at up to 1200 px,
+  stripped of metadata such as GPS location, and served only by id at `/api/images/<id>`.
+
 ### Other commands
 
 | Command | What it does |
 | --- | --- |
-| `npm test` | Unit tests for the nutrition maths, reference values, unit conversion and the USDA adapter |
+| `npm test` | Unit tests: nutrition maths, reference values, units, barcodes, source adapters, override rules, sessions |
+| `npm run test:integration` | Admin, import, image and diary tests against a real PostgreSQL database (`<name>_test`, created automatically) |
 | `npm run typecheck` / `npm run lint` | Static checks |
 | `npm run build` then `npm start` | Production build |
 | `npm run db:migrate` | Create/apply a migration after editing `prisma/schema.prisma` |
@@ -120,11 +145,12 @@ More detail: [docs/architecture.md](docs/architecture.md), [docs/data-sources.md
 | --- | --- |
 | **1 (done)** | App shell, dashboard, food database, logging, live macro and micronutrient totals, targets, persistence |
 | 1b (done) | Barcode scanning, Open Food Facts lookup with local caching, custom foods from a label |
-| 2 | Editing custom foods, saved meals, copy a meal from a previous day, per-nutrient custom targets |
+| 1c (done) | Admin panel: corrections as overrides, audit log, photo uploads, diary snapshots |
+| 2 | Saved meals, copy a meal from a previous day, per-nutrient custom targets |
 | 3 | Nutrient gap analysis: weekly averages, persistent vs. one-off lows, upper-limit and insufficient-data views |
 | 4 | Rules-based food recommendations that respect diet, allergies, energy budget and upper limits |
 | 5 | History: calendar, weekly/monthly trends, per-nutrient trends, target consistency |
-| 6 | Sign-in and multi-user, more food databases (CoFID, CIQUAL), iodine and biotin coverage |
+| 6 | Sign-in with individual accounts and roles (replacing the shared admin password), multi-user, more food databases (CoFID, CIQUAL), iodine and biotin coverage |
 
 ## Important
 

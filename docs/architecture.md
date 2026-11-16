@@ -26,8 +26,9 @@ User 1─* DiaryEntry *─1 Food *─1 FoodSource
 - **FoodNutrient** — `(foodId, nutrientKey)` → `amount NUMERIC(14,4)` + `unit`. No row means the value is unknown.
 - **FoodPortion** — label and gram weight, e.g. "1 cup, chopped" = 21 g.
 - **DiaryEntry** — calendar `date`, `meal`, the amount as the user expressed it (`quantity` × `unitLabel`,
-  `unitGrams`) and the resolved `grams`. Nutrients are computed from the food at read time rather than snapshotted,
-  so corrections to food data flow through. If foods become user-editable, entries should snapshot instead.
+  `unitGrams`), the resolved `grams`, and `per100g`: a snapshot of the food's nutrient values at the moment of
+  logging. Totals are computed from the snapshot, so correcting a food never rewrites days already recorded.
+- **FoodOverride**, **FoodAudit**, **FoodImage** — admin corrections, their history and uploaded photos (below).
 - **Profile** — everything targets depend on, all optional, plus the user's own energy/macro goals.
 
 Data completeness is derived, not stored: of the 29 core nutrients (5 macro + 24 micro), how many have a row.
@@ -73,6 +74,51 @@ The scanner uses the browser's `BarcodeDetector` where it supports retail codes 
 `barcode-detector` ponyfill (ZXing compiled to WebAssembly). A code is accepted only when read identically in
 two consecutive frames and its check digit is valid.
 
+## Corrections, overrides and imports
+
+```
+Food.sourceData   the record exactly as imported (never edited)
+FoodOverride      one row per corrected field: value, estimated flag, who, when
+        │
+        ▼  mergeFood()            src/food-sources/merge.ts   (pure, unit-tested)
+Food / FoodNutrient / FoodPortion   the EFFECTIVE values everything else reads
+```
+
+`materialiseFood()` in `src/food-sources/store.ts` is the only code that writes nutrients and portions. Bulk
+imports, barcode refreshes, custom foods and admin saves all store their input (a new imported record, or an
+override) and then call it. Because the merge is re-run on every import, an import cannot overwrite a correction.
+Search, barcode lookup, the product page and the dashboard read the effective columns, so they need no changes and
+see corrections immediately.
+
+Value priority, highest first: administrator override → values declared on the pack (Open Food Facts, custom
+foods) → reference database values (USDA) → source estimates → unknown. Each food has one imported record, so the
+rule that does the work is "an override beats the source". `FoodNutrient.origin` records which tier each effective
+value came from (`admin`, `admin-estimate`, `label`, `reference`, `user`). Source estimates are tier 4 on paper
+only: Open Food Facts' ingredient-based estimates are still not imported. An administrator can flag their own
+value as an estimate, which is tracked and shown.
+
+An override's value may be null, meaning "explicitly unknown" (or "no image", "no serving"). That is different
+from zero and different from having no override, so all three states survive a round trip.
+
+Saving (`applyFoodEdits`, `src/server/admin/food-admin.ts`) is one transaction: validate every field, upsert or
+delete overrides (a value equal to the imported one deletes the override), write one `FoodAudit` row per field
+that actually changed, re-merge. One invalid field rejects the whole save. Reverting an audit entry applies its
+old value through the same path.
+
+Rows created before `sourceData` existed have their imported record rebuilt from the row on first use, which is
+correct because nothing could have edited them before overrides existed.
+
+## Administrator access
+
+There are no user accounts, so admin rights come from a password in `ADMIN_PASSWORD` (`src/server/admin/session.ts`,
+`auth.ts`). Sign-in compares in constant time, is locked for 15 minutes after five failures, and sets an HTTP-only,
+SameSite=Lax cookie holding `v1.admin.<expiry>.<HMAC>`, signed with a key derived from the password. `getAdmin()`
+verifies it and is called by every admin page (`requireAdminPage`), every admin server action and the upload
+endpoint. Pages are streamed, so an unauthenticated request receives only the empty shell and a redirect.
+
+When real sign-in is added, `getAdmin()` is the one function to change: return the signed-in user if their role
+is admin.
+
 ## Rendering model
 
 Next.js Cache Components is on: the shell (navigation) is prerendered and each page's data streams in behind its
@@ -84,7 +130,13 @@ timezone on the profile.
 
 ## Testing
 
-`npm test` covers the domain and the USDA adapter: portion scaling, decimal exactness, missing-vs-zero, coverage
+`npm run test:integration` runs against a separate PostgreSQL database and covers the admin feature end to end
+at the service level: updating products, rejection of unauthenticated/forged/expired sessions, persistence, barcode
+lookups returning corrected values, bulk and barcode-refresh imports not overwriting corrections, restore and
+revert, image validation and replacement, and diary entries keeping their logged values until an explicit
+recalculation.
+
+`npm test` covers the domain and the source adapters: portion scaling, decimal exactness, missing-vs-zero, coverage
 states, upper-level rules (retinol-only, supplements-only), limit-type nutrients, target computation by sex, age,
 weight and energy, and unit conversion. The end-to-end flow was verified in a browser during development; an
 automated Playwright suite is a sensible addition in Phase 2.
